@@ -10,9 +10,7 @@
 ## Run
 
 ```
-git clone https://github.com/kairess/Vampire-Survivors-Python
-pip install pygame-ce pytmx
-python code/main.py
+uv run ./code/main.py
 ```
 
 ## Reference

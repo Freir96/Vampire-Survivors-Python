@@ -1,23 +1,26 @@
 from settings import *
 
+
 class Sprite(pygame.sprite.Sprite):
     def __init__(self, pos, surf, groups):
         super().__init__(groups)
         self.image = surf
-        self.rect = self.image.get_frect(topleft = pos)
+        self.rect = self.image.get_frect(topleft=pos)
         self.ground = True
+
 
 class CollisionSprite(pygame.sprite.Sprite):
     def __init__(self, pos, surf, groups):
         super().__init__(groups)
         self.image = surf
-        self.rect = self.image.get_frect(topleft = pos)
+        self.rect = self.image.get_frect(topleft=pos)
+
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, surf, pos, direction, groups):
         super().__init__(groups)
         self.image = surf
-        self.rect = self.image.get_frect(center = pos)
+        self.rect = self.image.get_frect(center=pos)
         self.spawn_time = pygame.time.get_ticks()
         self.lifetime = 1000
 
@@ -30,6 +33,7 @@ class Bullet(pygame.sprite.Sprite):
         if pygame.time.get_ticks() - self.spawn_time >= self.lifetime:
             self.kill()
 
+
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, pos, frames, groups, player, collision_sprites):
         super().__init__(groups)
@@ -41,8 +45,8 @@ class Enemy(pygame.sprite.Sprite):
         self.animation_speed = 6
 
         # rect
-        self.rect = self.image.get_frect(center = pos)
-        self.hitbox_rect = self.rect.inflate(-20,-40)
+        self.rect = self.image.get_frect(center=pos)
+        self.hitbox_rect = self.rect.inflate(-20, -40)
         self.collision_sprites = collision_sprites
         self.direction = pygame.Vector2()
         self.speed = 200
@@ -50,6 +54,8 @@ class Enemy(pygame.sprite.Sprite):
         # timer
         self.death_time = 0
         self.death_duration = 400
+
+        self.xp_value = 10
 
     def animate(self, dt):
         self.frame_index += self.animation_speed * dt
@@ -63,15 +69,15 @@ class Enemy(pygame.sprite.Sprite):
 
         # update the rect position + collision
         self.hitbox_rect.x += self.direction.x * self.speed * dt
-        self.collision('horizontal')
+        self.collision("horizontal")
         self.hitbox_rect.y += self.direction.y * self.speed * dt
-        self.collision('vertical')
+        self.collision("vertical")
         self.rect.center = self.hitbox_rect.center
 
     def collision(self, direction):
         for sprite in self.collision_sprites:
             if sprite.rect.colliderect(self.hitbox_rect):
-                if direction == 'horizontal':
+                if direction == "horizontal":
                     if self.direction.x > 0:
                         self.hitbox_rect.right = sprite.rect.left
                     if self.direction.x < 0:
@@ -87,7 +93,7 @@ class Enemy(pygame.sprite.Sprite):
         self.death_time = pygame.time.get_ticks()
         # change the image
         surf = pygame.mask.from_surface(self.frames[0]).to_surface()
-        surf.set_colorkey('black')
+        surf.set_colorkey("black")
         self.image = surf
 
     def death_timer(self):

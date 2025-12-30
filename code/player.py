@@ -1,34 +1,78 @@
-from settings import *
+from os.path import join
+from os import walk
+import pygame
+
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, groups, collision_sprites):
+    def __init__(self, pos, groups, collision_sprites, stats):
         super().__init__(groups)
+        self.max_hp = stats["max_hp"]
+        self.hp = stats["max_hp"]
+        self.speed = stats["speed"]
+        self.damage = stats["damage"]
 
-        self.frames = {'left': [
-            pygame.image.load(join('images', 'player', 'left', '0.png')).convert_alpha(),
-            pygame.image.load(join('images', 'player', 'left', '1.png')).convert_alpha(),
-            pygame.image.load(join('images', 'player', 'left', '2.png')).convert_alpha(),
-            pygame.image.load(join('images', 'player', 'left', '3.png')).convert_alpha(),
-        ], 'right': [
-            pygame.image.load(join('images', 'player', 'right', '0.png')).convert_alpha(),
-            pygame.image.load(join('images', 'player', 'right', '1.png')).convert_alpha(),
-            pygame.image.load(join('images', 'player', 'right', '2.png')).convert_alpha(),
-            pygame.image.load(join('images', 'player', 'right', '3.png')).convert_alpha(),
-        ], 'up': [
-            pygame.image.load(join('images', 'player', 'up', '0.png')).convert_alpha(),
-            pygame.image.load(join('images', 'player', 'up', '1.png')).convert_alpha(),
-            pygame.image.load(join('images', 'player', 'up', '2.png')).convert_alpha(),
-            pygame.image.load(join('images', 'player', 'up', '3.png')).convert_alpha(),
-        ], 'down': [
-            pygame.image.load(join('images', 'player', 'down', '0.png')).convert_alpha(),
-            pygame.image.load(join('images', 'player', 'down', '1.png')).convert_alpha(),
-            pygame.image.load(join('images', 'player', 'down', '2.png')).convert_alpha(),
-            pygame.image.load(join('images', 'player', 'down', '3.png')).convert_alpha(),
-        ]}
+        self.frames = {
+            "left": [
+                pygame.image.load(
+                    join("images", "player", "left", "0.png")
+                ).convert_alpha(),
+                pygame.image.load(
+                    join("images", "player", "left", "1.png")
+                ).convert_alpha(),
+                pygame.image.load(
+                    join("images", "player", "left", "2.png")
+                ).convert_alpha(),
+                pygame.image.load(
+                    join("images", "player", "left", "3.png")
+                ).convert_alpha(),
+            ],
+            "right": [
+                pygame.image.load(
+                    join("images", "player", "right", "0.png")
+                ).convert_alpha(),
+                pygame.image.load(
+                    join("images", "player", "right", "1.png")
+                ).convert_alpha(),
+                pygame.image.load(
+                    join("images", "player", "right", "2.png")
+                ).convert_alpha(),
+                pygame.image.load(
+                    join("images", "player", "right", "3.png")
+                ).convert_alpha(),
+            ],
+            "up": [
+                pygame.image.load(
+                    join("images", "player", "up", "0.png")
+                ).convert_alpha(),
+                pygame.image.load(
+                    join("images", "player", "up", "1.png")
+                ).convert_alpha(),
+                pygame.image.load(
+                    join("images", "player", "up", "2.png")
+                ).convert_alpha(),
+                pygame.image.load(
+                    join("images", "player", "up", "3.png")
+                ).convert_alpha(),
+            ],
+            "down": [
+                pygame.image.load(
+                    join("images", "player", "down", "0.png")
+                ).convert_alpha(),
+                pygame.image.load(
+                    join("images", "player", "down", "1.png")
+                ).convert_alpha(),
+                pygame.image.load(
+                    join("images", "player", "down", "2.png")
+                ).convert_alpha(),
+                pygame.image.load(
+                    join("images", "player", "down", "3.png")
+                ).convert_alpha(),
+            ],
+        }
 
         # self.load_images()
 
-        self.state = 'down'
+        self.state = "down"
         self.frame_index = 0
         self.image = self.frames[self.state][self.frame_index]
 
@@ -40,13 +84,22 @@ class Player(pygame.sprite.Sprite):
         self.speed = 500
         self.collision_sprites = collision_sprites
 
+        # damage timer
+        self.vulnerable = True
+        self.hurt_time = 0
+        self.invulnerability_duration = 500
+
     def load_images(self):
-        self.frames = {'left': [], 'right': [], 'up': [], 'down': []}
+        self.frames = {"left": [], "right": [], "up": [], "down": []}
 
         for state in self.frames.keys():
-            for folder_path, sub_folders, file_names in walk(join('images', 'player', state)):
+            for folder_path, sub_folders, file_names in walk(
+                join("images", "player", state)
+            ):
                 if file_names:
-                    for file_name in sorted(file_names, key= lambda name: int(name.split('.')[0])):
+                    for file_name in sorted(
+                        file_names, key=lambda name: int(name.split(".")[0])
+                    ):
                         full_path = join(folder_path, file_name)
                         surf = pygame.image.load(full_path).convert_alpha()
                         self.frames[state].append(surf)
@@ -69,17 +122,17 @@ class Player(pygame.sprite.Sprite):
             self.direction = self.direction.normalize()
 
         self.hitbox_rect.x += self.direction.x * self.speed * dt
-        self.collision('horizontal')
+        self.collision("horizontal")
 
         self.hitbox_rect.y += self.direction.y * self.speed * dt
-        self.collision('vertical')
+        self.collision("vertical")
 
         self.rect.center = self.hitbox_rect.center
 
     def collision(self, direction):
         for sprite in self.collision_sprites:
             if sprite.rect.colliderect(self.hitbox_rect):
-                if direction == 'horizontal':
+                if direction == "horizontal":
                     if self.direction.x > 0:
                         self.hitbox_rect.right = sprite.rect.left
                     if self.direction.x < 0:
@@ -93,14 +146,14 @@ class Player(pygame.sprite.Sprite):
     def animate(self, dt):
         if self.direction.x != 0:
             if self.direction.x > 0:
-                self.state = 'right'
+                self.state = "right"
             else:
-                self.state = 'left'
+                self.state = "left"
         if self.direction.y != 0:
             if self.direction.y > 0:
-                self.state = 'down'
+                self.state = "down"
             else:
-                self.state = 'up'
+                self.state = "up"
 
         # animate
         if self.direction:
@@ -108,8 +161,16 @@ class Player(pygame.sprite.Sprite):
         else:
             self.frame_index = 0
 
-        self.image = self.frames[self.state][int(self.frame_index) % len(self.frames[self.state])]
+        self.image = self.frames[self.state][
+            int(self.frame_index) % len(self.frames[self.state])
+        ]
 
     def update(self, dt):
         self.move(dt)
         self.animate(dt)
+
+        # cooldown
+        if not self.vulnerable:
+            current_time = pygame.time.get_ticks()
+            if current_time - self.hurt_time >= self.invulnerability_duration:
+                self.vulnerable = True
